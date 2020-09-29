@@ -56,11 +56,10 @@ public:
 
     void Find(string section, string param)
     {
-        for (auto it = tripleData.begin (); it != tripleData.end (); it++) {
-            if (it->first == section) {
-                if (it->second.first == param) {
+        for (auto it = tripleData.begin (); it != tripleData.end (); it++)
+        {
+            if (it->first == section && it->second.first == param) {
                     cout << it->second.second;
-                }
             }
         }
     }
