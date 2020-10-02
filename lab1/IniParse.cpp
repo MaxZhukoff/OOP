@@ -5,13 +5,13 @@ void IniParse::read_file(const std::string &fileName, const std::string &format)
     std::ifstream file;
     if (format != "ini")
     {
-        std::cerr << "¥¢¥à­ë© ä®à¬ â ä ©« " << std::endl;
+        std::cerr << "ÐÐµÐ²ÐµÑ€Ð½Ñ‹Ð¹ Ñ„Ð¾Ñ€Ð¼Ð°Ñ‚ Ñ„Ð°Ð¹Ð»Ð°" << std::endl;
         exit(-1);
     }
     file.open(fileName + '.' + format);
     if (!file.is_open())
     {
-        std::cerr << "¥ ã¤ «®áì ®âªàëâì ä ©«" << std::endl;
+        std::cerr << "ÐÐµ ÑƒÐ´Ð°Ð»Ð¾ÑÑŒ Ð¾Ñ‚ÐºÑ€Ñ‹Ñ‚ÑŒ Ñ„Ð°Ð¹Ð»" << std::endl;
         exit(-1);
     }
     std::string name, value;
@@ -29,7 +29,7 @@ void IniParse::read_file(const std::string &fileName, const std::string &format)
                 if (!(buffer[i] >= 48 && buffer[i] <= 57) && !(buffer[i] >= 65 && buffer[i] <= 90) &&
                     !(buffer[i] >= 97 && buffer[i] <= 122) && (buffer[i] != '_'))
                 {
-                    std::cerr << "¥¤®¯ãáâ¨¬ë© á¨¬¢®« ¢ ­ §¢ ­¨¨ á¥ªæ¨¨" << std::endl;
+                    std::cerr << "ÐÐµÐ´Ð¾Ð¿ÑƒÑÑ‚Ð¸Ð¼Ñ‹Ð¹ ÑÐ¸Ð¼Ð²Ð¾Ð» Ð² Ð½Ð°Ð·Ð²Ð°Ð½Ð¸Ð¸ ÑÐµÐºÑ†Ð¸Ð¸" << std::endl;
                     file.close();
                     exit(-1);
                 }
@@ -45,7 +45,7 @@ void IniParse::read_file(const std::string &fileName, const std::string &format)
                 if (!(buffer[i] >= 48 && buffer[i] <= 57) && !(buffer[i] >= 65 && buffer[i] <= 90) &&
                     !(buffer[i] >= 97 && buffer[i] <= 122) && (buffer[i] != '_'))
                 {
-                    std::cerr << "¥¤®¯ãáâ¨¬ë© á¨¬¢®« ¢ ­ §¢ ­¨¨ ¯ à ¬¥âà " << std::endl;
+                    std::cerr << "ÐÐµÐ´Ð¾Ð¿ÑƒÑÑ‚Ð¸Ð¼Ñ‹Ð¹ ÑÐ¸Ð¼Ð²Ð¾Ð» Ð² Ð½Ð°Ð·Ð²Ð°Ð½Ð¸Ð¸ Ð¿Ð°Ñ€Ð°Ð¼ÐµÑ‚Ñ€Ð°" << std::endl;
                     file.close();
                     exit(-1);
                 }
@@ -71,7 +71,7 @@ std::string IniParse::get_value(const std::string &section, const std::string &p
 {
     if (!flag)
     {
-        std::cerr << "¥â ¤ ­­ëå ¤«ï  ­ «¨§ ";
+        std::cerr << "ÐÐµÑ‚ Ð´Ð°Ð½Ð½Ñ‹Ñ… Ð´Ð»Ñ Ð°Ð½Ð°Ð»Ð¸Ð·Ð°";
         exit(-1);
     }
     if (type == "string")
@@ -80,7 +80,7 @@ std::string IniParse::get_value(const std::string &section, const std::string &p
         return check_int(section, param);
     if (type == "float")
         return check_float(section, param);
-    std::cerr << "¥¢¥à­ë© â¨¯ ¤ ­­ëå " << section << " " << param << std::endl;
+    std::cerr << "ÐÐµÐ²ÐµÑ€Ð½Ñ‹Ð¹ Ñ‚Ð¸Ð¿ Ð´Ð°Ð½Ð½Ñ‹Ñ… " << section << " " << param << std::endl;
     exit(-1);
 }
 
@@ -100,14 +100,14 @@ std::string IniParse::find(const std::string &section, const std::string &param)
 std::string IniParse::check_string(const std::string &section, const std::string &param) const {
     std::string result = this->find(section, param);
     if (result == "#NO_RESULT#") {
-        std::cerr << "‡ ¤ ­­®© ¯ àë á¥ªæ¨ï " << section << " ¯ à ¬¥âà " << param << " ­¥â ¢ ª®­ä¨£ãà æ¨®­­®¬ ä ©«¥" << std::endl;
+        std::cerr << "Ð—Ð°Ð´Ð°Ð½Ð½Ð¾Ð¹ Ð¿Ð°Ñ€Ñ‹ ÑÐµÐºÑ†Ð¸Ñ " << section << " Ð¿Ð°Ñ€Ð°Ð¼ÐµÑ‚Ñ€ " << param << " Ð½ÐµÑ‚ Ð² ÐºÐ¾Ð½Ñ„Ð¸Ð³ÑƒÑ€Ð°Ñ†Ð¸Ð¾Ð½Ð½Ð¾Ð¼ Ñ„Ð°Ð¹Ð»Ðµ" << std::endl;
         exit(-1);
     } else {
         for (int i = 0; i < result.length(); i++) {
             if (!(result[i] >= 65 && result[i] <= 90) && !(result[i] >= 97 && result[i] <= 122) &&
                 (result[i] != '_') && (result[i] != '.') && result[i] != '/')
             {
-                std::cerr << "¥¢¥à­ë© â¨¯ ¤ ­­ëå " << section << " " << param << std::endl;
+                std::cerr << "ÐÐµÐ²ÐµÑ€Ð½Ñ‹Ð¹ Ñ‚Ð¸Ð¿ Ð´Ð°Ð½Ð½Ñ‹Ñ… " << section << " " << param << std::endl;
                 exit(-1);
             }
         }
@@ -118,12 +118,12 @@ std::string IniParse::check_string(const std::string &section, const std::string
 std::string IniParse::check_int(const std::string &section, const std::string &param) const {
     std::string result = this->find(section, param);
     if (result == "#NO_RESULT#") {
-        std::cerr << "‡ ¤ ­­®© ¯ àë á¥ªæ¨ï " << section << " ¯ à ¬¥âà " << param << " ­¥â ¢ ª®­ä¨£ãà æ¨®­­®¬ ä ©«¥" << std::endl;
+        std::cerr << "Ð—Ð°Ð´Ð°Ð½Ð½Ð¾Ð¹ Ð¿Ð°Ñ€Ñ‹ ÑÐµÐºÑ†Ð¸Ñ " << section << " Ð¿Ð°Ñ€Ð°Ð¼ÐµÑ‚Ñ€ " << param << " Ð½ÐµÑ‚ Ð² ÐºÐ¾Ð½Ñ„Ð¸Ð³ÑƒÑ€Ð°Ñ†Ð¸Ð¾Ð½Ð½Ð¾Ð¼ Ñ„Ð°Ð¹Ð»Ðµ" << std::endl;
         exit(-1);
     } else {
         for (int i = 0; i < result.length(); i++) {
             if (!(result[i] >= 48 && result[i] <= 57)) {
-                std::cerr << "¥¢¥à­ë© â¨¯ ¤ ­­ëå " << section << " " << param << std::endl;
+                std::cerr << "ÐÐµÐ²ÐµÑ€Ð½Ñ‹Ð¹ Ñ‚Ð¸Ð¿ Ð´Ð°Ð½Ð½Ñ‹Ñ… " << section << " " << param << std::endl;
                 exit(-1);
             }
         }
@@ -135,7 +135,7 @@ std::string IniParse::check_float(const std::string &section, const std::string 
     std::string result = this->find(section, param);
     if (result == "#NO_RESULT#")
     {
-        std::cerr << "‡ ¤ ­­®© ¯ àë á¥ªæ¨ï " << section << " ¯ à ¬¥âà " << param << " ­¥â ¢ ª®­ä¨£ãà æ¨®­­®¬ ä ©«¥" << std::endl;
+        std::cerr << "Ð—Ð°Ð´Ð°Ð½Ð½Ð¾Ð¹ Ð¿Ð°Ñ€Ñ‹ ÑÐµÐºÑ†Ð¸Ñ " << section << " Ð¿Ð°Ñ€Ð°Ð¼ÐµÑ‚Ñ€ " << param << " Ð½ÐµÑ‚ Ð² ÐºÐ¾Ð½Ñ„Ð¸Ð³ÑƒÑ€Ð°Ñ†Ð¸Ð¾Ð½Ð½Ð¾Ð¼ Ñ„Ð°Ð¹Ð»Ðµ" << std::endl;
         exit(-1);
     } else {
         int check_float = 0;
@@ -144,13 +144,13 @@ std::string IniParse::check_float(const std::string &section, const std::string 
                 check_float++;
             if (!(result[i] >= 48 && result[i] <= 57) && result[i] != '.')
             {
-                std::cerr << "¥¢¥à­ë© â¨¯ ¤ ­­ëå " << section << " " << param << std::endl;
+                std::cerr << "ÐÐµÐ²ÐµÑ€Ð½Ñ‹Ð¹ Ñ‚Ð¸Ð¿ Ð´Ð°Ð½Ð½Ñ‹Ñ… " << section << " " << param << std::endl;
                 exit(-1);
             }
         }
         if (check_float != 1)
         {
-            std::cerr << "¥¢¥à­ë© â¨¯ ¤ ­­ëå " << section << " " << param << std::endl;
+            std::cerr << "ÐÐµÐ²ÐµÑ€Ð½Ñ‹Ð¹ Ñ‚Ð¸Ð¿ Ð´Ð°Ð½Ð½Ñ‹Ñ… " << section << " " << param << std::endl;
             exit(-1);
         }
         else
