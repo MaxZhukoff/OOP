@@ -3,11 +3,11 @@ using namespace std;
 
 int main() {
     IniParse ini;
-    /*cout << "‚¢¥¤¨â¥ ­ §¢ ­¨¥ ¨ ä®à¬ â ä ©« " << endl;
+    /*cout << "Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ Ð½Ð°Ð·Ð²Ð°Ð½Ð¸Ðµ Ð¸ Ñ„Ð¾Ñ€Ð¼Ð°Ñ‚ Ñ„Ð°Ð¹Ð»Ð°" << endl;
     string fileName, format;
     cin >> fileName >> format;
     ini.read_file(fileName, format);
-    cout << "‚¢¥¤¨â¥ ­ §¢ ­¨¥ á¥ªæ¨¨, ­ §¢ ­¨¥ ¯ à ¬¥âà  ¨ âà¥¡ã¥¬ë© â¨¯ ¤ ­­ëå(int, float, string)" << endl;
+    cout << "Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ Ð½Ð°Ð·Ð²Ð°Ð½Ð¸Ðµ ÑÐµÐºÑ†Ð¸Ð¸, Ð½Ð°Ð·Ð²Ð°Ð½Ð¸Ðµ Ð¿Ð°Ñ€Ð°Ð¼ÐµÑ‚Ñ€Ð° Ð¸ Ñ‚Ñ€ÐµÐ±ÑƒÐµÐ¼Ñ‹Ð¹ Ñ‚Ð¸Ð¿ Ð´Ð°Ð½Ð½Ñ‹Ñ…(int, float, string)" << endl;
     string section, param, type;
     cin >> section >> param >> type;
     cout << ini.get_value(section, param, type) << endl;*/
