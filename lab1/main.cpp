@@ -10,11 +10,11 @@ int main() {
             cout << result.value() << endl;
 
         std::optional<float> result1 = ini.getFloat("ADC_DEV", "BufferLenSeconds");
-        if (result)
+        if (result1)
             cout << result1.value() << endl;
 
         std::optional<string> result2 = ini.getString("ADC_DEV", "Driver");
-        if (result)
+        if (result2)
             cout << result2.value() << endl;
 
 //        ini.getInt("COMMON", "LogNCMD")
