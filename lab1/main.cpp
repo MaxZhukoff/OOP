@@ -3,28 +3,32 @@ using namespace std;
 
 int main() {
     IniParse ini;
-    /*cout << "Введите название и формат файла" << endl;
-    string fileName, format;
-    cin >> fileName >> format;
-    ini.read_file(fileName, format);
-    cout << "Введите название секции, название параметра и требуемый тип данных(int, float, string)" << endl;
-    string section, param, type;
-    cin >> section >> param >> type;
-    cout << ini.get_value(section, param, type) << endl;*/
-    ini.read_file("file", "ini");
-    cout << ini.get_value("COMMON", "StatisterTimeMs", "int") << endl;
-    cout << ini.get_value("COMMON", "LogNCMD", "int") << endl;
-    cout << ini.get_value("COMMON", "LogXML", "int") << endl;
-    cout << ini.get_value("COMMON", "DiskCachePath", "string") << endl;
-    cout << ini.get_value("COMMON", "OpenMPThreadsCount", "int") << endl;
-    cout << ini.get_value("ADC_DEV", "BufferLenSeconds", "float") << endl;
-    cout << ini.get_value("ADC_DEV", "SampleRate", "float") << endl;
-    cout << ini.get_value("ADC_DEV", "Driver", "string") << endl;
-    cout << ini.get_value("NCMD", "EnableChanellControl", "int") << endl;
-    cout << ini.get_value("NCMD", "SampleRate", "float") << endl;
-    cout << ini.get_value("NCMD", "TidPacketVersionForTidControlCommand", "int") << endl;
-    cout << ini.get_value("LEGACY_XML", "ListenTcpPort", "int") << endl;
-    cout << ini.get_value("Debug", "PlentySockMaxQSize", "int") << endl;
-    
+    if (ini.read_file("file", "ini") == GOOD) {
+
+        std::optional<int> result = ini.getInt("COMMON", "StatisterTimeMs");
+        if (result)
+            cout << result.value() << endl;
+
+        std::optional<float> result1 = ini.getFloat("ADC_DEV", "BufferLenSeconds");
+        if (result)
+            cout << result1.value() << endl;
+
+        std::optional<string> result2 = ini.getString("ADC_DEV", "Driver");
+        if (result)
+            cout << result2.value() << endl;
+
+//        ini.getInt("COMMON", "LogNCMD")
+//        ini.getInt("COMMON", "LogXML")
+//        ini.getString("COMMON", "DiskCachePath")
+//        ini.getInt("COMMON", "OpenMPThreadsCount")
+//        ini.getFloat("ADC_DEV", "BufferLenSeconds")
+//        ini.getFloat("ADC_DEV", "SampleRate")
+//        ini.getString("ADC_DEV", "Driver")
+//        ini.getInt("NCMD", "EnableChanellControl")
+//        ini.getFloat("NCMD", "SampleRate")
+//        ini.getInt("NCMD", "TidPacketVersionForTidControlCommand")
+//        ini.getInt("LEGACY_XML", "ListenTcpPort")
+//        ini.getInt("Debug", "PlentySockMaxQSize")
+    }
     return 0;
 }
