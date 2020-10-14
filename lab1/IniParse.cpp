@@ -1,18 +1,19 @@
 #include "IniParse.h"
 
-void IniParse::read_file(const std::string &fileName, const std::string &format)
+file_processing IniParse::read_file(const std::string &fileName, const std::string &format)
 {
+    std::map<std::string, std::string> data_now;
     std::ifstream file;
     if (format != "ini")
     {
         std::cerr << "Неверный формат файла" << std::endl;
-        exit(-1);
+        return WRONG_FORMAT;
     }
     file.open(fileName + '.' + format);
     if (!file.is_open())
     {
         std::cerr << "Не удалось открыть файл" << std::endl;
-        exit(-1);
+        return NOT_OPEN;
     }
     std::string name, value;
     std::string section;
@@ -31,10 +32,12 @@ void IniParse::read_file(const std::string &fileName, const std::string &format)
                 {
                     std::cerr << "Недопустимый символ в названии секции" << std::endl;
                     file.close();
-                    exit(-1);
+                    return BAD_GRAMMAR;
                 }
                 section += buffer[i];
             }
+            data_now.clear();
+            continue;
         }
         else if (buffer[0] != '\0')
         {
@@ -47,7 +50,7 @@ void IniParse::read_file(const std::string &fileName, const std::string &format)
                 {
                     std::cerr << "Недопустимый символ в названии параметра" << std::endl;
                     file.close();
-                    exit(-1);
+                    return BAD_GRAMMAR;
                 }
                 name += buffer[i++];
             }
@@ -58,85 +61,71 @@ void IniParse::read_file(const std::string &fileName, const std::string &format)
                     break;
                 value += buffer[i];
             }
-            std::pair<std::string, std::string> param(name, value);
-            std::pair<std::string, std::pair<std::string, std::string>> data_now(section, param);
-            data.push_back(data_now);
+            if (!section.empty() || !name.empty() || !value.empty()) {
+                auto it = data_now.emplace(name, value);
+                if (it.second)
+                    data[section][name] = value;
+                else
+                    std::cerr << "Есть повторяющиеся имена параметров в одной секции!";
+            }
         }
     }
-    flag = true;
     file.close();
+    return GOOD;
 }
-
-std::string IniParse::get_value(const std::string &section, const std::string &param, const std::string &type) const
-{
-    if (!flag)
-    {
-        std::cerr << "Нет данных для анализа";
-        exit(-1);
-    }
-    if (type == "string")
-        return check_string(section, param);
-    if (type == "int")
-        return check_int(section, param);
-    if (type == "float")
-        return check_float(section, param);
-    std::cerr << "Неверный тип данных " << section << " " << param << std::endl;
-    exit(-1);
-}
-
 
 std::string IniParse::find(const std::string &section, const std::string &param) const
 {
-    for (auto it = data.begin (); it != data.end (); it++)
-    {
-        if (it->first == section && it->second.first == param) {
-            return it->second.second;
-        }
-    }
-    return "#NO_RESULT#";
+    auto it_section = data.find(section);
+    if (it_section == data.end())
+        return "";
+    auto it_param = it_section->second.find(param);
+    if (it_param == it_section->second.end())
+        return "";
+    return it_param->second;
 }
 
 
-std::string IniParse::check_string(const std::string &section, const std::string &param) const {
+std::optional<std::string> IniParse::getString(const std::string &section, const std::string &param) const {
     std::string result = this->find(section, param);
-    if (result == "#NO_RESULT#") {
+    if (result.empty()) {
         std::cerr << "Заданной пары секция " << section << " параметр " << param << " нет в конфигурационном файле" << std::endl;
-        exit(-1);
+        return { };
     } else {
         for (int i = 0; i < result.length(); i++) {
             if (!(result[i] >= 65 && result[i] <= 90) && !(result[i] >= 97 && result[i] <= 122) &&
                 (result[i] != '_') && (result[i] != '.') && result[i] != '/')
             {
                 std::cerr << "Неверный тип данных " << section << " " << param << std::endl;
-                exit(-1);
+                return { };
             }
         }
         return result;
     }
 }
 
-std::string IniParse::check_int(const std::string &section, const std::string &param) const {
+std::optional<int> IniParse::getInt(const std::string &section, const std::string &param) const {
     std::string result = this->find(section, param);
-    if (result == "#NO_RESULT#") {
+    if (result.empty()) {
         std::cerr << "Заданной пары секция " << section << " параметр " << param << " нет в конфигурационном файле" << std::endl;
-        exit(-1);
+        return { };
     } else {
         for (int i = 0; i < result.length(); i++) {
             if (!(result[i] >= 48 && result[i] <= 57)) {
                 std::cerr << "Неверный тип данных " << section << " " << param << std::endl;
-                exit(-1);
+                return { };
             }
         }
-        return result;
+        return {std::stoi(result)};
     }
 }
 
-std::string IniParse::check_float(const std::string &section, const std::string &param) const {
+std::optional<double> IniParse::getFloat(const std::string &section, const std::string &param) const {
     std::string result = this->find(section, param);
-    if (result == "#NO_RESULT#")
+    if (result.empty())
     {
         std::cerr << "Заданной пары секция " << section << " параметр " << param << " нет в конфигурационном файле" << std::endl;
-        exit(-1);
+        return { };
     } else {
         int check_float = 0;
         for (int i = 0; i < result.length(); i++) {
@@ -145,15 +134,15 @@ std::string IniParse::check_float(const std::string &section, const std::string 
             if (!(result[i] >= 48 && result[i] <= 57) && result[i] != '.')
             {
                 std::cerr << "Неверный тип данных " << section << " " << param << std::endl;
-                exit(-1);
+                return { };
             }
         }
         if (check_float != 1)
         {
             std::cerr << "Неверный тип данных " << section << " " << param << std::endl;
-            exit(-1);
+            return { };
         }
         else
-            return result;
+            return std::stod(result);
     }
 }
