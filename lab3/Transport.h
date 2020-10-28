@@ -19,7 +19,8 @@ public:
             return { };
         else return distance / speed;
     }
-    typeOfTransport getType() const
+
+    typeOfTransport getType()const
     {
         return type;
     }
@@ -29,21 +30,21 @@ public:
         return name;
     }
 
-    friend std::ostream& operator<<(std::ostream &out, const Transport &transport)
+    friend std::ostream& operator<<(std::ostream &out, const Transport *transport)
     {
-        out << transport.getName();
+        out << transport->getName();
         return out;
     }
 
-    bool operator<(const Transport& other) const
+    bool operator==(const Transport *other) const
     {
-        return this->name < other.name;
+        return this->name == other->name;
     }
 
 protected:
     std::string name;
-    typeOfTransport type = any;
-    double speed = 1; //>0;
+    typeOfTransport type;
+    double speed;
 };
 
 

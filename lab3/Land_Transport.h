@@ -6,6 +6,10 @@
 
 class Land_Transport : public Transport {
 public:
+    Land_Transport()
+    {
+        type = land;
+    }
     std::optional<double> getTime(const double distance) const override
     {
         if (distance <= 0 || speed <= 0 || restInterval <= 0)
@@ -33,8 +37,7 @@ public:
     }
 
 protected:
-    typeOfTransport type = land;
-    int restInterval = 1; //>0;
+    int restInterval;
     std::vector<double> restTime;
 };
 

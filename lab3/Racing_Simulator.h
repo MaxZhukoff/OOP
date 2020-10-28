@@ -2,6 +2,7 @@
 #define LAB_3_RACING_SIMULATOR_H
 
 #include <string>
+#include <algorithm>
 #include <vector>
 #include "Land_Transport.h"
 #include "Air_Transport.h"
@@ -11,43 +12,55 @@ class Racing_Simulator {
 public:
     explicit Racing_Simulator(const typeOfTransport type, const double distance)
     {
-        this->type = type;
         this->distance = distance;
+        this->type = type;
     }
 
-    bool addTransport(const Transport &transport)
+    bool addTransport(Transport *transport)
     {
-        if (this->type!=transport.getType())
+        if (type != transport->getType() && type != any || std::find(transports.begin(), transports.end(), transport) != transports.end())
             return false;
         transports.push_back(transport);
         return true;
     }
 
-    std::optional<Transport> runRace()
+    std::optional<std::string> runRace()
     {
         if (transports.empty())
             return { };
         double minTime = -1;
-        Transport resTransport;
+        std::string resTsName;
         for (auto & transport : transports)
         {
-            auto resTime = transport.getTime(distance);
+            std::optional<double> resTime = transport->getTime(distance);
             if (resTime)
                 if (minTime == -1 || resTime < minTime)
                 {
                     minTime = resTime.value();
-                    resTransport = transport;
+                    resTsName = transport->getName();
                 }
         }
         if (minTime != -1)
-            return resTransport;
+            return resTsName;
         else return { };
     }
+
+    void changeDistance(const double distance)
+    {
+        if (distance > 0) this->distance = distance;
+    }
+
+    void changeTypeOfRace(const typeOfTransport type)
+    {
+        this->type = type;
+        transports.clear();
+    }
+
 
 private:
     double distance;
     typeOfTransport type;
-    std::vector<Transport> transports;
+    std::vector<Transport*> transports;
 };
 
 
