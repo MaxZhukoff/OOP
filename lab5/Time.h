@@ -3,7 +3,6 @@
 
 #include <iostream>
 #include <ctime>
-#include "Account.h"
 
 class GlobalTime {
 public:
@@ -78,11 +77,6 @@ public:
     {
         if (months > 0)
             activated = false;
-        globalTime = time;
-        dayStart = time->getDay();
-        monthStart = time->getMonth();
-        yearStart = time->getYear();
-        secNow = globalTime->getSecFrom();
         ltmEnd = localtime(&secNow);
         ltmEnd->tm_mon += months;
         secEnd = mktime(ltmEnd);
@@ -122,6 +116,37 @@ private:
     bool activated;
     time_t secEnd;
     tm *ltmEnd;
+};
+
+class CreditAccountTime : public AccountTime {
+public:
+    CreditAccountTime(GlobalTime *time) : AccountTime(time)
+    {}
+
+    std::optional<std::pair<int, int>> checkDate(const bool boolCommission)
+    {
+        int dayNow = globalTime->getDay();
+        int monthNow = globalTime->getMonth();
+        int yearNow = globalTime->getYear();
+        time_t sec = globalTime->getSecFrom();
+        time_t diffSec = difftime(sec, secNow);
+        if (diffSec <= 0)
+            return {};
+        tm *ltmDiff = localtime(&diffSec);
+        int yearsDiff = ltmDiff->tm_year - 70;
+        int monthsDiff = yearsDiff * 12 + ltmDiff->tm_mon;
+        int daysDiff = yearsDiff * 365 + ltmDiff->tm_yday;
+        secNow = globalTime->getSecFrom();
+        if (monthsDiff == 0 && dayNow >= dayStart && (monthNow > monthStart || yearNow > yearStart))
+        {
+            monthsDiff++;
+            if (!boolCommission)
+                return std::make_pair(monthsDiff, 0);
+        }
+        if (!boolCommission)
+            return {};
+        return std::make_pair(monthsDiff, daysDiff);
+    }
 };
 
 #endif

@@ -10,7 +10,7 @@
 class Account
 {
 public:
-    Account(Client *client, const int money = 0)
+    Account(Client *client, const double money = 0)
     {
         if (money < 0)
             this->money = 0;
@@ -20,7 +20,7 @@ public:
         activated = true;
     }
 
-    virtual bool withdrawMoney(const int money)
+    virtual bool withdrawMoney(const double money)
     {
         if (!activated)
             return false;
@@ -33,9 +33,9 @@ public:
         return true;
     }
 
-    void bankWithdrawMoney(const int money) { this->money -= money; }
+    void bankWithdrawMoney(const double money) { this->money -= money; }
 
-    virtual bool transfer(Account *otherAccount, const int money)
+    virtual bool transfer(Account *otherAccount, const double money)
     {
         if (!activated)
             return false;
@@ -44,7 +44,7 @@ public:
             return false;
         }
         this->money -= money;
-        otherAccount->money += money;
+        otherAccount->topUpMoney(money);
         return true;
     }
 
@@ -68,7 +68,7 @@ protected:
 class DebitAccount : public Account
 {
 public:
-    DebitAccount(Client *client, GlobalTime *time, const double percent, const int money = 0) : Account(client, money), accountTime(time)
+    DebitAccount(Client *client, GlobalTime *time, const double percent, const double money = 0) : Account(client, money), accountTime(time)
     {
         if (money < 0)
             this->money = 0;
@@ -93,11 +93,6 @@ public:
     }
 
 private:
-    AccountTime accountTime;
-    double sumPercents;
-    double initialPercent;
-    double accruals;
-
     void accrual(const std::pair<int, int> months_days) {
         int months = months_days.first;
         int days = months_days.second;
@@ -112,6 +107,10 @@ private:
         }
     }
 
+    AccountTime accountTime;
+    double sumPercents;
+    double initialPercent;
+    double accruals;
 };
 
 class Deposit : public Account
@@ -166,12 +165,6 @@ public:
     }
 
 private:
-    DepositAccountTime accountTime;
-    double sumPercents;
-    double initialPercent;
-    double deposit;
-    double accruals;
-
     void accrual(const std::pair<int, int> months_days) {
         int months = months_days.first;
         int days = months_days.second;
@@ -185,10 +178,94 @@ private:
             sumPercents = deposit * (initialPercent / 360 / 100);
         }
     }
+
+    DepositAccountTime accountTime;
+    double sumPercents;
+    double initialPercent;
+    double deposit;
+    double accruals;
 };
 
-class CreditAccount
+class CreditAccount : public Account
 {
+public:
+    CreditAccount(Client *client, GlobalTime *time, const double commission, const double money = 0) : Account(client, money), accountTime(time)
+    {
+        this->commission = commission;
+        if (money < 0)
+            this->money = 0;
+        boolCommission = false;
+        sumCommission = 0;
+    }
+
+    bool withdrawMoney(const double money) override
+    {
+        if (!activated)
+            return false;
+        this->money -= money;
+        if (checkCommission())
+            this->money -= commission;
+        return true;
+    }
+
+    bool transfer(Account *otherAccount, const double money) override
+    {
+        if (!activated)
+            return false;
+        this->money -= money;
+        otherAccount->topUpMoney(money);
+        if (checkCommission())
+            this->money -= commission;
+        return true;
+    }
+
+    bool topUpMoney(const double money) override
+    {
+        if (!activated || money < 0)
+            return false;
+        this->money += money;
+        checkCommission();
+        return true;
+    }
+
+    bool checkCommission() {
+        if (money < 0) {
+            auto res = accountTime.checkDate(boolCommission);
+            if (res.operator bool())
+            {
+                std::pair<int, int> months_days = res.value();
+                accrual(months_days);
+            }
+            boolCommission = true;
+            return true;
+        }
+        else return false;
+    }
+
+private:
+    void accrual(const std::pair<int, int> months_days) {
+        int months = months_days.first;
+        int days = months_days.second;
+        if (days == 0 && months == 1)
+        {
+            money -= sumCommission;
+            sumCommission = 0;
+        }
+        if (months < 1)
+            sumCommission += commission * days;
+        else {
+            sumCommission += commission * days;
+            money -= sumCommission;
+            sumCommission = 0;
+        }
+    }
+
+    CreditAccountTime accountTime;
+    double commission;
+    bool boolCommission;
+    double sumCommission;
 };
+
+
 
 #endif
