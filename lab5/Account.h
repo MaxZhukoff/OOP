@@ -10,23 +10,32 @@
 class Account
 {
 public:
-    Account(Client *client, const double money = 0)
+    Account(Client *client, const unsigned ID, const double limitationSum, const double money = 0)
     {
         if (money < 0)
             this->money = 0;
         else
             this->money = money;
+        this->ID = ID;
+        clientID = client->getID();
         this->client = client;
         activated = true;
+        this->limitationSum = limitationSum;
     }
 
     virtual bool withdrawMoney(const double money)
     {
+        updateAccount();
         if (!activated)
             return false;
         if (this->money - money < 0 || money < 0)
         {
             std::cerr << "There is not enough money in the account" << std::endl;
+            return false;
+        }
+        if (!client->getTrusted() && money > limitationSum)
+        {
+            std::cerr << "You cannot transfer more than " << limitationSum << std::endl;
             return false;
         }
         this->money -= money;
@@ -35,12 +44,18 @@ public:
 
     void bankWithdrawMoney(const double money) { this->money -= money; }
 
-    virtual bool transfer(Account *otherAccount, const double money)
+    virtual bool transferMoney(Account *otherAccount, const double money)
     {
+        updateAccount();
         if (!activated)
             return false;
         if (this->money - money < 0 || money < 0) {
             std::cerr << "There is not enough money in the account" << std::endl;
+            return false;
+        }
+        if (!client->getTrusted() && money > limitationSum)
+        {
+            std::cerr << "You cannot transfer more than " << limitationSum << std::endl;
             return false;
         }
         this->money -= money;
@@ -50,25 +65,37 @@ public:
 
     virtual bool topUpMoney(const double money)
     {
+        updateAccount();
         if (!activated || money < 0)
             return false;
+        if (!client->getTrusted() && money > limitationSum)
+        {
+            std::cerr << "You cannot transfer more than " << limitationSum << std::endl;
+            return false;
+        }
         this->money += money;
         return true;
     }
 
+    virtual bool updateAccount() { return true; }
+
     double getMoney()const { return money; }
+    unsigned getID()const { return ID; }
+    unsigned getClientID()const { return clientID; }
 
 protected:
     Client *client;
     bool activated;
+    unsigned ID;
     unsigned clientID;
     double money;
+    double limitationSum;
 };
 
 class DebitAccount : public Account
 {
 public:
-    DebitAccount(Client *client, GlobalTime *time, const double percent, const double money = 0) : Account(client, money), accountTime(time)
+    DebitAccount(Client *client, GlobalTime *time, const unsigned ID, const double percent, const double limitationSum, const double money = 0) : Account(client, ID, limitationSum, money), accountTime(time)
     {
         if (money < 0)
             this->money = 0;
@@ -82,7 +109,7 @@ public:
         sumPercents = money * (percent / 360 / 100);
     }
 
-    void checkPercent()
+    bool updateAccount() override
     {
         auto res = accountTime.checkDate();
         if (res.operator bool())
@@ -90,6 +117,7 @@ public:
             std::pair<int, int> months_days = res.value();
             accrual(months_days);
         }
+        return true;
     }
 
 private:
@@ -116,13 +144,13 @@ private:
 class Deposit : public Account
 {
 public:
-    Deposit(Client *client, GlobalTime *time, const double initialDeposit, const double percent, const int months) : Account(client), accountTime(time, months)
+    Deposit(Client *client, GlobalTime *time, const unsigned ID, const double initialDeposit, const double percent, const int months, const double limitationSum) : Account(client, ID, limitationSum), accountTime(time, months)
     {
         if (initialDeposit < 0)
             deposit = 0;
         else
             deposit = initialDeposit;
-        activated = false;
+        depositActivated = false;
         accruals = 0;
         if (percent <= 0)
             initialPercent = 0.1;
@@ -131,9 +159,9 @@ public:
         sumPercents = initialDeposit * (percent / 360 / 100);
     }
 
-    bool checkDeposit()
+    bool updateAccount() override
     {
-        if (!activated)
+        if (!depositActivated)
         {
             auto res = accountTime.checkDate();
             if (res.operator bool())
@@ -145,7 +173,7 @@ public:
             {
                 money = deposit;
                 deposit = 0;
-                activated = true;
+                depositActivated = true;
                 return true;
             }
             else return false;
@@ -155,9 +183,15 @@ public:
 
     bool topUpMoney(const double money) override
     {
+        updateAccount();
         if (money < 0)
             return false;
-        if (!activated)
+        if (!client->getTrusted() && money > limitationSum)
+        {
+            std::cerr << "You cannot transfer more than " << limitationSum << std::endl;
+            return false;
+        }
+        if (!depositActivated)
             deposit += money;
         else
             this->money += money;
@@ -180,6 +214,7 @@ private:
     }
 
     DepositAccountTime accountTime;
+    bool depositActivated;
     double sumPercents;
     double initialPercent;
     double deposit;
@@ -189,7 +224,7 @@ private:
 class CreditAccount : public Account
 {
 public:
-    CreditAccount(Client *client, GlobalTime *time, const double commission, const double money = 0) : Account(client, money), accountTime(time)
+    CreditAccount(Client *client, GlobalTime *time, const unsigned ID, const double commission, const double limitationSum, const double money = 0) : Account(client, ID, limitationSum, money), accountTime(time)
     {
         this->commission = commission;
         if (money < 0)
@@ -202,19 +237,29 @@ public:
     {
         if (!activated)
             return false;
+        if (!client->getTrusted() && money > limitationSum)
+        {
+            std::cerr << "You cannot transfer more than " << limitationSum << std::endl;
+            return false;
+        }
         this->money -= money;
-        if (checkCommission())
+        if (updateAccount())
             this->money -= commission;
         return true;
     }
 
-    bool transfer(Account *otherAccount, const double money) override
+    bool transferMoney(Account *otherAccount, const double money) override
     {
         if (!activated)
             return false;
+        if (!client->getTrusted() && money > limitationSum)
+        {
+            std::cerr << "You cannot transfer more than " << limitationSum << std::endl;
+            return false;
+        }
         this->money -= money;
         otherAccount->topUpMoney(money);
-        if (checkCommission())
+        if (updateAccount())
             this->money -= commission;
         return true;
     }
@@ -223,12 +268,17 @@ public:
     {
         if (!activated || money < 0)
             return false;
+        if (!client->getTrusted() && money > limitationSum)
+        {
+            std::cerr << "You cannot transfer more than " << limitationSum << std::endl;
+            return false;
+        }
         this->money += money;
-        checkCommission();
+        updateAccount();
         return true;
     }
 
-    bool checkCommission() {
+    bool updateAccount() {
         if (money < 0) {
             auto res = accountTime.checkDate(boolCommission);
             if (res.operator bool())
@@ -265,7 +315,5 @@ private:
     bool boolCommission;
     double sumCommission;
 };
-
-
 
 #endif

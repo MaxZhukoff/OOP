@@ -8,8 +8,9 @@ class ClientBuilder;
 
 class Client {
 public:
-    Client(const std::string &firstName, const std::string &lastName, const unsigned passNum = 0, const std::string &address = "")
+    Client(const unsigned ID, const std::string &firstName, const std::string &lastName, const unsigned passNum = 0, const std::string &address = "")
     {
+        this->ID = ID;
         this->firstName = firstName;
         this->lastName = lastName;
         this->address = address;
@@ -43,12 +44,15 @@ public:
         else return false;
     }
 
+    unsigned getID() const { return ID; }
     std::string getFirstName() const { return firstName; }
     std::string getLastName() const { return lastName; }
     std::string getAddress() const { return address; }
+    int getPassNum() const { return passNum; }
     bool getTrusted() const { return trusted; }
 
 private:
+    unsigned ID;
     bool trusted;
     std::string firstName;
     std::string lastName;
@@ -65,33 +69,21 @@ public:
         passNum = 0;
     }
 
-    std::optional<Client> build()
+    std::optional<Client> build(const unsigned ID)
     {
         if (!firstName.empty() && !lastName.empty())
         {
             if (!address.empty())
-                return Client(firstName, lastName, passNum, address);
+                return Client(ID, firstName, lastName, passNum, address);
             else
-                return Client(firstName, lastName, passNum);
+                return Client(ID, firstName, lastName, passNum);
         }
         else return {};
     }
 
     void setName(const std::string &firstName, const std::string &lastName) { this->firstName = firstName; this->lastName = lastName; }
     void setAddress(const std::string &address) { this->address = address; }
-    void setPass(const unsigned num) { this->passNum = num; }
-    std::optional<Client> setAddress(Client &client, const std::string &address)
-    {
-        if (!client.addAddress(address))
-            return {};
-        else return client;
-    }
-    std::optional<Client> setPass(Client &client, const unsigned num)
-    {
-        if (!client.addPassNum(num))
-            return {};
-        else return client;
-    }
+    void setPass(const unsigned num) { if (num > 0) this->passNum = num; }
 
 private:
     std::string firstName;
