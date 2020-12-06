@@ -2,10 +2,12 @@
 #define LAB_5_BANK_H
 
 #include <iostream>
+#include <optional>
 #include <vector>
 #include "Time.h"
 #include "Client.h"
 #include "Account.h"
+#include "Command.h"
 
 enum transactionType {
     withdraw,
@@ -138,7 +140,7 @@ public:
         return deposit->getID();
     }
 
-    bool createCreditAccount(const unsigned ClientID, const double money)
+    std::optional<unsigned> createCreditAccount(const unsigned ClientID, const double money)
     {
         if (money < 0 || ClientID > clients.size() - 1)
             return {};
@@ -149,86 +151,64 @@ public:
 
     std::optional<unsigned> withdrawMoney(unsigned accountID, const double money)
     {
-        if (money < 0 || accountID > accounts.size() - 1)
+        if (money < 0 || accountID > clients.size() - 1)
             return {};
-        unsigned transactionID = transactions.size();
-        if (accounts[accountID]->withdrawMoney(money))
-        {
-            std::pair account(accounts[accountID], accounts[accountID]);
-            std::pair type(withdraw, money);
-            std::pair transaction(type, account);
-            return transactionID;
+        WithdrawMoneyCommand *command = new WithdrawMoneyCommand(accounts[accountID], money, commands.size());
+        if (!command->execute()) {
+            delete command;
+            return {};
+        } else {
+            commands.push_back(command);
+            return command->getID();
         }
-        else return {};
     }
 
     std::optional<unsigned> transferMoney(unsigned accountID, unsigned otherAccountID, const double money)
     {
-        if (money < 0 || accountID > accounts.size() - 1)
+        if (money < 0 || accountID > accounts.size() - 1 || otherAccountID > accounts.size() - 1)
             return {};
-        unsigned transactionID = transactions.size();
-        if (accounts[accountID]->transferMoney(accounts[otherAccountID], money))
-        {
-            std::pair account(accounts[accountID], accounts[otherAccountID]);
-            std::pair type(transfer, money);
-            std::pair transaction(type, account);
-            transactions.push_back(transaction);
-            return transactionID;
+        TransferMoneyCommand *command = new TransferMoneyCommand(accounts[accountID], accounts[otherAccountID], money, commands.size());
+        if (!command->execute()) {
+            delete command;
+            return {};
+        } else {
+            commands.push_back(command);
+            return command->getID();
         }
-        else return {};
     }
 
     std::optional<unsigned> topUpMoney(unsigned accountID, const double money)
     {
-        if (money < 0 || accountID > accounts.size() - 1)
+        if (money < 0 || accountID > clients.size() - 1)
             return {};
-        unsigned transactionID = transactions.size();
-        if (accounts[accountID]->topUpMoney(money))
-        {
-            std::pair account(accounts[accountID], accounts[accountID]);
-            std::pair type(topUp, money);
-            std::pair transaction(type, account);
-            transactions.push_back(transaction);
-            return transactionID;
+        TopUpMoneyCommand *command = new TopUpMoneyCommand(accounts[accountID], money, commands.size());
+        if (!command->execute()) {
+            delete command;
+            return {};
+        } else {
+            commands.push_back(command);
+            return command->getID();
         }
-        else return {};
     }
 
-    void updateAccount(const unsigned accountId) { accounts[accountId]->updateAccount(); }
+    std::optional<unsigned> cancelingTransaction(unsigned transactionID)
+    {
+        if (transactionID > commands.size() - 1)
+            return {};
+        if (commands[transactionID]->undo())
+            return commands[transactionID]->getID();
+        else return {};
+    }
 
     std::optional<double> showAccountMoney(unsigned accountID)
     {
         if (accountID > accounts.size() - 1)
             return {};
+        accounts[accountID]->updateAccount();
         return accounts[accountID]->getMoney();
     }
 
-    bool cancelingTransaction(unsigned transactionID)
-    {
-        if (transactionID > transactions.size() - 1)
-            return false;
-        if (transactions[transactionID].first.first == withdraw)
-        {
-            transactions[transactionID].second.first->topUpMoney(transactions[transactionID].first.second);
-            transactions[transactionID].first.second = 0;
-            return true;
-        }
-        if (transactions[transactionID].first.first == transfer)
-        {
-            transactions[transactionID].second.first->topUpMoney(transactions[transactionID].first.second);
-            transactions[transactionID].second.second->bankWithdrawMoney(transactions[transactionID].first.second);
-            transactions[transactionID].first.second = 0;
-            return true;
-        }
-        if (transactions[transactionID].first.first == topUp)
-        {
-            transactions[transactionID].second.first->bankWithdrawMoney(transactions[transactionID].first.second);
-            transactions[transactionID].first.second = 0;
-            return true;
-        }
-        return false;
-    }
-
+    void updateAccount(const unsigned accountId) { accounts[accountId]->updateAccount(); }
     void timeMachine(const int year, const int month, const int day) { time.timeMachine(year, month, day); }
     void timeUpdate() { time.upDate(); }
 
@@ -236,9 +216,11 @@ public:
     {
         for (const auto & i : clients) {
             delete i;
-
         }
         for (const auto & i : accounts) {
+            delete i;
+        }
+        for (const auto & i : commands) {
             delete i;
         }
     }
@@ -252,7 +234,7 @@ private:
     std::vector<std::pair<double, double>> depositPercents;
     std::vector<Client*> clients;
     std::vector<Account*> accounts;
-    std::vector<std::pair<std::pair<transactionType, double>, std::pair<Account*, Account*>>> transactions;
+    std::vector<Command*> commands;
 };
 
 #endif

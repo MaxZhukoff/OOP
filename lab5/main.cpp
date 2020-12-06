@@ -16,34 +16,39 @@ int main() {
     depositPercent.push_back(make_pair(100000, 10));
     Bank bank(10, 1, 100000, depositPercent);
     unsigned cl1 = bank.createClient().value();
-    unsigned ac1 = bank.createDepositAccount(cl1, 10000, 12).value();
-    unsigned ac2 = bank.createDebitAccount(cl1, 1000).value();
-    bank.topUpMoney(ac2, 5000);
-    cout << bank.showAccountMoney(ac2).value() << endl;
-    bank.cancelingTransaction(0);
-    cout << bank.showAccountMoney(ac2).value() << endl;
-    bank.timeMachine(2022, 11, 27);
-    bank.updateAccount(ac2);
-    cout << bank.showAccountMoney(ac2).value() << endl;
+    unsigned cl2 = bank.createClient().value();
+    cout << endl << endl;
 
-//    t.timeMachine(2022, 12, 28);
-//
-//    deb1.checkPercent();
-//    deb2.checkPercent();
-//    cout << deb1.getMoney() << " " << deb2.getMoney() << endl;
-//    deb1.transfer(&deb2, 5000);
-//    cout << deb1.getMoney() << " " << deb2.getMoney() << endl;
-//    deb1.topUpMoney(5000);
-//    deb2.withdrawMoney(5000);
-//    cout << deb1.getMoney() << " " << deb2.getMoney() << endl;
+    unsigned creditAc1 = bank.createCreditAccount(cl2, 5000).value();
+    unsigned debitAc2 = bank.createDebitAccount(cl2, 10000).value();
+    unsigned depositAc3 = bank.createDepositAccount(cl1, 50000, 6).value();
+    cout << "Credit: " << bank.showAccountMoney(creditAc1).value() << endl;
+    cout << "Debit: " << bank.showAccountMoney(debitAc2).value() << endl;
+    cout << "Deposit: " << bank.showAccountMoney(depositAc3).value() << endl << endl;
 
-//    CreditAccount credit(&cl1, &t, 10, 1000);
-//    cout << credit.getMoney() << endl;
-//    credit.withdrawMoney(10000);
-//    cout << credit.getMoney() << endl;
-//    t.timeMachine(2025, 12, 27);
-//    credit.checkCommission();
-//    cout << credit.getMoney() << endl;
+    bank.withdrawMoney(debitAc2, 15000);
+    bank.withdrawMoney(creditAc1, 9990);
+    cout << "Credit: " << bank.showAccountMoney(creditAc1).value() << endl;
+    cout << "Debit: " << bank.showAccountMoney(debitAc2).value() << endl << endl;
+
+    unsigned tran1;
+    auto tran = bank.withdrawMoney(debitAc2, 10000);
+    cout << "Debit: " << bank.showAccountMoney(debitAc2).value() << endl;
+    if (tran) {
+        tran1 = tran.value();
+        bank.cancelingTransaction(tran1);
+        cout << "Debit cancel: " << bank.showAccountMoney(debitAc2).value() << endl << endl;
+    }
+
+    bank.transferMoney(debitAc2, creditAc1, 1000);
+    cout << "Credit: " << bank.showAccountMoney(creditAc1).value() << endl;
+    cout << "Debit: " << bank.showAccountMoney(debitAc2).value() << endl << endl;
+
+    bank.timeMachine(2021, 06, 27);
+    cout << "Credit: " << bank.showAccountMoney(creditAc1).value() << endl;
+    cout << "Debit: " << bank.showAccountMoney(debitAc2).value() << endl;
+    cout << "Deposit: " << bank.showAccountMoney(depositAc3).value() << endl << endl;
+
 
     return 0;
 }

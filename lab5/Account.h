@@ -97,10 +97,6 @@ class DebitAccount : public Account
 public:
     DebitAccount(Client *client, GlobalTime *time, const unsigned ID, const double percent, const double limitationSum, const double money = 0) : Account(client, ID, limitationSum, money), accountTime(time)
     {
-        if (money < 0)
-            this->money = 0;
-        else
-            this->money = money;
         accruals = 0;
         if (percent <= 0)
             initialPercent = 0.1;
@@ -227,8 +223,6 @@ public:
     CreditAccount(Client *client, GlobalTime *time, const unsigned ID, const double commission, const double limitationSum, const double money = 0) : Account(client, ID, limitationSum, money), accountTime(time)
     {
         this->commission = commission;
-        if (money < 0)
-            this->money = 0;
         boolCommission = false;
         sumCommission = 0;
     }
