@@ -9,12 +9,6 @@
 #include "Account.h"
 #include "Command.h"
 
-enum transactionType {
-    withdraw,
-    transfer,
-    topUp
-};
-
 class Bank
 {
 public:
